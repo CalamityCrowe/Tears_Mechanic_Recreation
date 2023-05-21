@@ -2,6 +2,7 @@
 
 
 #include "Rewindable.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ARewindable::ARewindable()
@@ -19,7 +20,24 @@ void ARewindable::RewindObject(float lerpIntensity)
 {
 	if (m_isRewinding == true) 
 	{
-		
+		if (m_RewindPositions->IsEmpty()) 
+		{
+			m_isRewinding = false;
+		}
+		else 
+		{
+			if (nextPosition.first != m_RewindPositions->Peek()->first) 
+			{
+				nextPosition = *m_RewindPositions->Peek();
+			}
+			else
+			{
+				m_RewindPositions->Dequeue(); 
+			}
+			FVector tempPos = UKismetMathLibrary::VLerp(GetActorLocation(), nextPosition.first, lerpIntensity); 
+			FRotator tempRot = UKismetMathLibrary::RLerp(GetActorRotation(), nextPosition.second, lerpIntensity,false);
+			SetActorLocationAndRotation(tempPos, tempRot); 
+		}
 	}
 }
 
@@ -47,6 +65,11 @@ void ARewindable::BeginPlay()
 {
 	Super::BeginPlay();
 	GrabPosition();
+}
+
+void ARewindable::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	m_RewindPositions->Empty(); 
 }
 
 // Called every frame

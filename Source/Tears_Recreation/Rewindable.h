@@ -21,16 +21,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void RewindObject(float lerpIntensity);
+	UFUNCTION(BlueprintCallable)
 	void SetRewind(bool b) { m_isRewinding = b; }
 	bool GetRewind() { return m_isRewinding; }
-
+	UFUNCTION(BlueprintCallable)
+		int rewindCount() { return m_RewindPositions->Count() - 1; }
 	UFUNCTION(BlueprintCallable)
 		void GrabPosition();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -39,6 +41,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 		class UStaticMeshComponent* StaticMesh;
-
+	pair<FVector, FRotator> nextPosition; 
 
 };
