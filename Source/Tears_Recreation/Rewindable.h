@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include <utility>   
 #include "Containers/CircularQueue.h"
-
+#include "Components/SplineComponent.h"
 #include "Rewindable.generated.h"
 
 using std::pair;
@@ -23,12 +23,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void RewindObject(float lerpIntensity);
 	UFUNCTION(BlueprintCallable)
-		void SetRewind(bool b) { m_isRewinding = b; }
+		void SetRewind(bool b)
+	{
+		m_isRewinding = b;
+		nextPosition = m_RewindPositions->Pop();
+	}
 	bool GetRewind() { return m_isRewinding; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 		int rewindCount() { return m_RewindPositions->Num(); }
 	UFUNCTION(BlueprintCallable)
 		void GrabPosition();
+
+
+
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,4 +52,5 @@ public:
 		class UStaticMeshComponent* StaticMesh;
 	pair<FVector, FRotator> nextPosition;
 
+	bool StartMove = true;
 };

@@ -3,6 +3,7 @@
 
 #include "Rewindable.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ARewindable::ARewindable()
@@ -23,24 +24,35 @@ void ARewindable::RewindObject(float lerpIntensity)
 		if (m_RewindPositions->IsEmpty())
 		{
 			m_isRewinding = false;
-			
+
 		}
 		else
 		{
-			if (abs(GetActorLocation().Length() - m_RewindPositions->Top().first.Length()) > 1)
+			if (abs(GetActorLocation().Length() - m_RewindPositions->Top().first.Length()) > 1.f)
 			{
 				nextPosition = m_RewindPositions->Top();
 			}
 			else
 			{
 				m_RewindPositions->Pop();
+				StartMove = true;
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Emptying")));
 			}
-			FVector tempPos = UKismetMathLibrary::VLerp(GetActorLocation(), nextPosition.first, lerpIntensity);
-			FRotator tempRot = UKismetMathLibrary::RLerp(GetActorRotation(), nextPosition.second, lerpIntensity, false);
-			SetActorLocationAndRotation(tempPos, tempRot);
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d"), m_RewindPositions->Num()));
+			if (StartMove)
+			{
+				FLatentActionInfo LatentInfo;
+				LatentInfo.CallbackTarget = this;
+				FVector tempPos = nextPosition.first;
+				FRotator tempRot = nextPosition.second;
+				StartMove = false;
+				UKismetSystemLibrary::MoveComponentTo(StaticMesh, tempPos, tempRot, false, false, lerpIntensity, true, EMoveComponentAction::Type::Move, LatentInfo);
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("I AM HERE")));
+			}
+
+
+
 		}
+
 	}
 }
 
@@ -54,7 +66,7 @@ void ARewindable::GrabPosition()
 		}
 		else
 		{
-			m_RewindPositions->RemoveAt(0); 
+			m_RewindPositions->RemoveAt(0);
 			m_RewindPositions->Push(pair<FVector, FRotator>(GetActorLocation(), GetActorRotation()));
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("AAAAAAAAAA")));
 
@@ -63,6 +75,8 @@ void ARewindable::GrabPosition()
 
 	}
 }
+
+
 
 // Called when the game starts or when spawned
 void ARewindable::BeginPlay()
@@ -89,5 +103,6 @@ void ARewindable::Tick(float DeltaTime)
 		StaticMesh->SetSimulatePhysics(true);
 	}
 
+	if (m_RewindPositions->Num() == 0) { m_isRewinding = false; }
 }
 
