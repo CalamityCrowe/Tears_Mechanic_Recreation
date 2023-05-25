@@ -64,6 +64,9 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &ATears_RecreationCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &ATears_RecreationCharacter::MoveRight);
 
+	PlayerInputComponent->BindAction("Toggle Rewind", IE_Pressed, this, &ATears_RecreationCharacter::CreateRewindHud);
+	PlayerInputComponent->BindAction("Toggle Rewind", IE_Released, this, &ATears_RecreationCharacter::DestroyRewindHud);
+
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
@@ -75,6 +78,14 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &ATears_RecreationCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &ATears_RecreationCharacter::TouchStopped);
+}
+
+void ATears_RecreationCharacter::CreateRewindHud()
+{
+}
+
+void ATears_RecreationCharacter::DestroyRewindHud()
+{
 }
 
 void ATears_RecreationCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)

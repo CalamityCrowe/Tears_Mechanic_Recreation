@@ -24,20 +24,25 @@ void ARewindable::RewindObject(float lerpIntensity)
 		if (m_RewindPositions->IsEmpty())
 		{
 			m_isRewinding = false;
+			StartMove = true; // resets the start move variable so it can move again
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Purple, FString::Printf(TEXT("I am Empty")));
 
 		}
 		else
 		{
-			if (abs(GetActorLocation().Length() - m_RewindPositions->Top().first.Length()) > 1.f)
+			if (nextPosition.first == FVector::ZeroVector) // checks if the next position is set to vector zero
 			{
-				nextPosition = m_RewindPositions->Top();
+				nextPosition = m_RewindPositions->Pop(); // assigns the most recent value in the array of old positions to the next positions
+				
 			}
-			else
+
+			if (abs(GetActorLocation().Length() - nextPosition.first.Length()) <= 5.5f) // checks if the distance is less than 5
 			{
-				m_RewindPositions->Pop();
+				nextPosition = m_RewindPositions->Pop();
 				StartMove = true;
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Emptying")));
 			}
+			
 			if (StartMove)
 			{
 				FLatentActionInfo LatentInfo;
@@ -100,6 +105,7 @@ void ARewindable::Tick(float DeltaTime)
 	}
 	else
 	{
+		nextPosition = pair<FVector, FRotator>(FVector::ZeroVector, FRotator::ZeroRotator); // resets the next position vector
 		StaticMesh->SetSimulatePhysics(true);
 	}
 

@@ -61,5 +61,12 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	bool m_RewindToggle; 
+
+	UFUNCTION(BlueprintCallable)
+		void CreateRewindHud(); 
+	UFUNCTION(BlueprintCallable)
+		void DestroyRewindHud(); 
 };
 

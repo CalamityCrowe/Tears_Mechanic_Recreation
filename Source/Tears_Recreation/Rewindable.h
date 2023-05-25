@@ -26,7 +26,7 @@ public:
 		void SetRewind(bool b)
 	{
 		m_isRewinding = b;
-		nextPosition = m_RewindPositions->Pop();
+		StartMove = true;
 	}
 	bool GetRewind() { return m_isRewinding; }
 	UFUNCTION(BlueprintPure)
