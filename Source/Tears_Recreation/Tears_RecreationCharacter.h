@@ -58,6 +58,8 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	float m_MaxGrabDistance;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -66,16 +68,25 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rewind Ability")
 		bool m_RewindToggle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attach Ability")
+		bool m_AttachToggle;
 
 	UFUNCTION(BlueprintCallable)
 		void CreateRewindHud();
 	UFUNCTION(BlueprintCallable)
 		void DestroyRewindHud();
 
-	void ActivateRewind();
+	void ActivateAbility();
+
+	void ReleaseAttached(); 
+
+	UFUNCTION(BlueprintCallable)
+		void ToggleAttachAbility();
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void LerpCamera();
+
+
 
 
 	UFUNCTION(BlueprintCallable)
@@ -86,6 +97,10 @@ public:
 
 	bool m_validTarget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Physics Component")
+		class UPhysicsHandleComponent* physicsHandler;
+
 	FHitResult m_rewindHitResult;
+	FHitResult m_attachHitResult;
 };
 

@@ -4,6 +4,8 @@
 #include "Rewindable.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
+
 
 // Sets default values
 ARewindable::ARewindable()
@@ -14,6 +16,9 @@ ARewindable::ARewindable()
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	RootComponent = StaticMesh;
 	m_RewindPositions = new TArray<pair<FVector, FRotator>>();
+	
+	m_Grabbed = false; 
+	m_StartMove = true; 
 
 }
 
@@ -25,7 +30,7 @@ void ARewindable::RewindObject(float lerpIntensity)
 		if (m_RewindPositions->IsEmpty())
 		{
 			m_isRewinding = false;
-			StartMove = true; // resets the start move variable so it can move again
+			m_StartMove = true; // resets the start move variable so it can move again
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Purple, FString::Printf(TEXT("I am Empty")));
 
 		}
@@ -40,17 +45,17 @@ void ARewindable::RewindObject(float lerpIntensity)
 			if (abs(GetActorLocation().Length() - nextPosition.first.Length()) <= 5.5f) // checks if the distance is less than 5
 			{
 				nextPosition = m_RewindPositions->Pop();
-				StartMove = true;
+				m_StartMove = true;
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Emptying")));
 			}
 			
-			if (StartMove)
+			if (m_StartMove)
 			{
 				FLatentActionInfo LatentInfo;
 				LatentInfo.CallbackTarget = this;
 				FVector tempPos = nextPosition.first;
 				FRotator tempRot = nextPosition.second;
-				StartMove = false;
+				m_StartMove = false;
 				UKismetSystemLibrary::MoveComponentTo(StaticMesh, tempPos, tempRot, false, false, lerpIntensity, true, EMoveComponentAction::Type::Move, LatentInfo);
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("I AM HERE")));
 			}

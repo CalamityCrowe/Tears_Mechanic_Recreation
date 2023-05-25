@@ -21,14 +21,14 @@ public:
 	ARewindable();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void StartRewind(); 
+		void StartRewind();
 	UFUNCTION(BlueprintCallable)
 		void RewindObject(float lerpIntensity);
 	UFUNCTION(BlueprintCallable)
 		void SetRewind(bool b)
 	{
 		m_isRewinding = b;
-		StartMove = true;
+		m_StartMove = true;
 	}
 	bool GetRewind() { return m_isRewinding; }
 	UFUNCTION(BlueprintPure)
@@ -36,17 +36,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void GrabPosition();
 
+	void SetGrabbed(bool b)
+	{
+		m_Grabbed = b; 
+	}
+	bool isGrabbed() { return m_Grabbed;  }
 
-
-
-
+	void SetPosition(FVector newPosition) 
+	{
+		SetActorLocation(newPosition); 
+	}
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaTime) override;
+
+	bool m_StartMove;
+	bool m_Grabbed;
+
+	float m_DistanceFromPlayer;
+
 public:
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 	TArray<pair<FVector, FRotator>>* m_RewindPositions;
 	bool m_isRewinding;
 
@@ -54,6 +66,7 @@ public:
 		class UStaticMeshComponent* StaticMesh;
 	pair<FVector, FRotator> nextPosition;
 
-	bool StartMove = true;
+
+
 
 };

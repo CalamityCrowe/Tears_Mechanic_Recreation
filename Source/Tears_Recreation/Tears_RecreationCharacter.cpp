@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Rewindable.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,6 +51,12 @@ ATears_RecreationCharacter::ATears_RecreationCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	physicsHandler = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandler"));
+	physicsHandler->InterpolationSpeed = 10; 
+
+	m_MaxGrabDistance = 1000;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,7 +73,9 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &ATears_RecreationCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("Toggle Rewind", IE_Pressed, this, &ATears_RecreationCharacter::ToggleRewindAbility);
-	PlayerInputComponent->BindAction("Activate Rewind", IE_Pressed, this, &ATears_RecreationCharacter::ActivateRewind);
+	PlayerInputComponent->BindAction("Activate Ability", IE_Pressed, this, &ATears_RecreationCharacter::ActivateAbility);
+	PlayerInputComponent->BindAction("Activate Ability", IE_Released, this, &ATears_RecreationCharacter::ReleaseAttached);
+	PlayerInputComponent->BindAction("Toggle Attach", IE_Pressed, this, &ATears_RecreationCharacter::ToggleAttachAbility);
 	//PlayerInputComponent->BindAction("Toggle Rewind", IE_Released, this, &ATears_RecreationCharacter::DestroyRewindHud);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
@@ -100,23 +109,86 @@ void ATears_RecreationCharacter::Tick(float deltaTime)
 			}
 		}
 	}
-	
+	if (m_AttachToggle)
+	{
+		if (LineTraceMethod(m_attachHitResult))
+		{
+			AActor* hitRewind = m_attachHitResult.GetActor();
+			if (ARewindable* rewindTemp = Cast<ARewindable>(hitRewind))
+			{
+				m_validTarget = true;
+				if (rewindTemp->isGrabbed())
+				{
+
+					if (physicsHandler->GrabbedComponent)
+					{
+
+						physicsHandler->SetTargetLocationAndRotation(GetFollowCamera()->GetComponentLocation() + (GetFollowCamera()->GetForwardVector() * 800), rewindTemp->GetActorRotation());
+						//rewindTemp->physicsHandler->SetTargetLocationAndRotation(temp_Location, temp_Rotation); 
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Grabbed")));
+					}
+					else 
+					{
+						FVector temp_Location = m_attachHitResult.GetComponent()->GetComponentLocation();
+						FRotator temp_Rotation = m_attachHitResult.GetComponent()->GetComponentRotation();
+						physicsHandler->GrabComponentAtLocationWithRotation(m_attachHitResult.GetComponent(),FName(TEXT("NONE")), temp_Location, temp_Rotation);
+					}
+				}
+			}
+			else
+			{
+				physicsHandler->ReleaseComponent();
+			}
+
+		}
+	}
+
 }
+
+void ATears_RecreationCharacter::ReleaseAttached()
+{
+	if (physicsHandler->GrabbedComponent)
+	{	
+		if (ARewindable* tempRewind= Cast<ARewindable>(m_attachHitResult.GetActor())) 
+		{
+			tempRewind->SetGrabbed(false); 
+		}
+		physicsHandler->ReleaseComponent();
+	}
+}
+
 
 void ATears_RecreationCharacter::ToggleRewindAbility()
 {
+	m_AttachToggle = false;
 	if (m_RewindToggle)
 	{
 		m_RewindToggle = false;
 		m_validTarget = false;
-		
 	}
 	else
 	{
 		m_RewindToggle = true;
 	}
-	LerpCamera(); 
+	LerpCamera();
 }
+void ATears_RecreationCharacter::ToggleAttachAbility()
+{
+	m_RewindToggle = false;
+
+	if (m_AttachToggle)
+	{
+		m_AttachToggle = false;
+		m_validTarget = false;
+
+	}
+	else
+	{
+		m_AttachToggle = true;
+	}
+	LerpCamera();
+}
+
 
 void ATears_RecreationCharacter::CreateRewindHud()
 {
@@ -127,22 +199,30 @@ void ATears_RecreationCharacter::DestroyRewindHud()
 {
 }
 
-void ATears_RecreationCharacter::ActivateRewind()
+void ATears_RecreationCharacter::ActivateAbility()
 {
-	if (m_validTarget && m_RewindToggle) 
+	if (m_validTarget && m_RewindToggle)
 	{
 		ARewindable* temp_Rewind = Cast<ARewindable>(m_rewindHitResult.GetActor());
-		if (temp_Rewind->GetRewind() == false) 
+		if (temp_Rewind->GetRewind() == false)
 		{
-			temp_Rewind->SetRewind(true); 
-			temp_Rewind->StartRewind(); 
-			m_RewindToggle = false; 
-			m_validTarget = false; 
-			LerpCamera(); 
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("It's rewind time")));
+			temp_Rewind->SetRewind(true);
+			temp_Rewind->StartRewind();
+			m_RewindToggle = false;
+			m_validTarget = false;
+			LerpCamera();
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("It's rewind time")));
 		}
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
+	if (m_validTarget && m_AttachToggle)
+	{
+		ARewindable* temp_Rewind = Cast<ARewindable>(m_attachHitResult.GetActor());
+		if (temp_Rewind->isGrabbed() == false)
+		{
+			temp_Rewind->SetGrabbed(true);
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
+		}
+	}
 
 }
 
