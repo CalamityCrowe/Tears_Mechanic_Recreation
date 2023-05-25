@@ -20,8 +20,6 @@ public:
 	// Sets default values for this actor's properties
 	ARewindable();
 
-	UFUNCTION(BlueprintImplementableEvent)
-		void StartRewind(); 
 	UFUNCTION(BlueprintCallable)
 		void RewindObject(float lerpIntensity);
 	UFUNCTION(BlueprintCallable)
@@ -55,5 +53,4 @@ public:
 	pair<FVector, FRotator> nextPosition;
 
 	bool StartMove = true;
-
 };
