@@ -6,27 +6,27 @@
 #include "GameFramework/Character.h"
 #include "Tears_RecreationCharacter.generated.h"
 
-UCLASS(config=Game)
+UCLASS(config = Game)
 class ATears_RecreationCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+		/** Camera boom positioning the camera behind the character */
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+		class UCameraComponent* FollowCamera;
 public:
 	ATears_RecreationCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Input)
-	float TurnRateGamepad;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input)
+		float TurnRateGamepad;
 
 
-	void Tick(float deltaTime) override; 
+	void Tick(float deltaTime) override;
 protected:
 
 	/** Called for forwards/backward input */
@@ -35,14 +35,14 @@ protected:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
-	/** 
-	 * Called via input to turn at a given rate. 
+	/**
+	 * Called via input to turn at a given rate.
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void TurnAtRate(float Rate);
 
 	/**
-	 * Called via input to turn look up/down at a given rate. 
+	 * Called via input to turn look up/down at a given rate.
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
@@ -64,24 +64,28 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	bool m_RewindToggle; 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rewind Ability")
+		bool m_RewindToggle;
 
 	UFUNCTION(BlueprintCallable)
-		void CreateRewindHud(); 
+		void CreateRewindHud();
 	UFUNCTION(BlueprintCallable)
 		void DestroyRewindHud();
 
-	void ActivateRewind(); 
-	
+	void ActivateRewind();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void LerpCamera();
+
 
 	UFUNCTION(BlueprintCallable)
-		void ToggleRewindAbility(); 
+		void ToggleRewindAbility();
 
 	UFUNCTION(BlueprintCallable)
 		bool LineTraceMethod(FHitResult& outHit);
 
-	bool m_validTarget; 
+	bool m_validTarget;
 
-	FHitResult m_rewindHitResult; 
+	FHitResult m_rewindHitResult;
 };
 

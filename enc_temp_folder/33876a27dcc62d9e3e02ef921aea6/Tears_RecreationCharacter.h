@@ -25,6 +25,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Input)
 	float TurnRateGamepad;
 
+
+	void Tick(float deltaTime) override; 
 protected:
 
 	/** Called for forwards/backward input */
@@ -67,9 +69,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void CreateRewindHud(); 
 	UFUNCTION(BlueprintCallable)
-		void DestroyRewindHud(); 
+		void DestroyRewindHud();
+
+	void ActivateRewind(); 
+	
+
+
+	UFUNCTION(BlueprintCallable)
+		void ToggleRewindAbility(); 
 
 	UFUNCTION(BlueprintCallable)
 		bool LineTraceMethod(FHitResult& outHit);
+
+	bool m_validTarget; 
+
+	FHitResult m_rewindHitResult; 
 };
 

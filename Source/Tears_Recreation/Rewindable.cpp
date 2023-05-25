@@ -17,6 +17,7 @@ ARewindable::ARewindable()
 
 }
 
+
 void ARewindable::RewindObject(float lerpIntensity)
 {
 	if (m_isRewinding == true)

@@ -100,7 +100,7 @@ void ATears_RecreationCharacter::Tick(float deltaTime)
 			}
 		}
 	}
-
+	
 }
 
 void ATears_RecreationCharacter::ToggleRewindAbility()
@@ -109,12 +109,13 @@ void ATears_RecreationCharacter::ToggleRewindAbility()
 	{
 		m_RewindToggle = false;
 		m_validTarget = false;
+		
 	}
 	else
 	{
 		m_RewindToggle = true;
 	}
-
+	LerpCamera(); 
 }
 
 void ATears_RecreationCharacter::CreateRewindHud()
@@ -137,12 +138,16 @@ void ATears_RecreationCharacter::ActivateRewind()
 			temp_Rewind->StartRewind(); 
 			m_RewindToggle = false; 
 			m_validTarget = false; 
+			LerpCamera(); 
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("It's rewind time")));
 		}
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
 
 }
+
+
+
 
 bool ATears_RecreationCharacter::LineTraceMethod(FHitResult& outHit)
 {

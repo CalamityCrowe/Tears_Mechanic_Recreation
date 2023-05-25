@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Rewindable.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATears_RecreationCharacter
@@ -64,8 +65,9 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &ATears_RecreationCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &ATears_RecreationCharacter::MoveRight);
 
-	PlayerInputComponent->BindAction("Toggle Rewind", IE_Pressed, this, &ATears_RecreationCharacter::CreateRewindHud);
-	PlayerInputComponent->BindAction("Toggle Rewind", IE_Released, this, &ATears_RecreationCharacter::DestroyRewindHud);
+	PlayerInputComponent->BindAction("Toggle Rewind", IE_Pressed, this, &ATears_RecreationCharacter::ToggleRewindAbility);
+	PlayerInputComponent->BindAction("Activate Rewind", IE_Pressed, this, &ATears_RecreationCharacter::ActivateRewind);
+	//PlayerInputComponent->BindAction("Toggle Rewind", IE_Released, this, &ATears_RecreationCharacter::DestroyRewindHud);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -80,21 +82,73 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindTouch(IE_Released, this, &ATears_RecreationCharacter::TouchStopped);
 }
 
-void ATears_RecreationCharacter::CreateRewindHud()
+void ATears_RecreationCharacter::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+	if (m_RewindToggle)
+	{
+		if (LineTraceMethod(m_rewindHitResult))
+		{
+			AActor* hitActor = m_rewindHitResult.GetActor();
+			if (Cast<ARewindable>(hitActor))
+			{
+				m_validTarget = true;
+			}
+			else
+			{
+				m_validTarget = false;
+			}
+		}
+	}
+
+}
+
+void ATears_RecreationCharacter::ToggleRewindAbility()
 {
 	if (m_RewindToggle)
 	{
 		m_RewindToggle = false;
+		m_validTarget = false;
+		
 	}
 	else
 	{
 		m_RewindToggle = true;
+		CameraBoom->TargetArmLength = 200; 
+		CameraBoom->SocketOffset = FVector(0, 70, 70); 
 	}
+
+}
+
+void ATears_RecreationCharacter::CreateRewindHud()
+{
+
 }
 
 void ATears_RecreationCharacter::DestroyRewindHud()
 {
 }
+
+void ATears_RecreationCharacter::ActivateRewind()
+{
+	if (m_validTarget && m_RewindToggle) 
+	{
+		ARewindable* temp_Rewind = Cast<ARewindable>(m_rewindHitResult.GetActor());
+		if (temp_Rewind->GetRewind() == false) 
+		{
+			temp_Rewind->SetRewind(true); 
+			temp_Rewind->StartRewind(); 
+			m_RewindToggle = false; 
+			m_validTarget = false; 
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("It's rewind time")));
+		}
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
+
+}
+
+
+
 
 bool ATears_RecreationCharacter::LineTraceMethod(FHitResult& outHit)
 {
@@ -106,8 +160,8 @@ bool ATears_RecreationCharacter::LineTraceMethod(FHitResult& outHit)
 
 	parameters.AddIgnoredActor(this); // makers it ignore itself for the hit
 
-	return true;
-	//return UWorld::LineTraceSingleByChannel(outHit,start, end,ECollisionChannel::ECC_Visibility,parameters,NULL);
+	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.5f, 1.f, 0.5f);
+	return GetWorld()->LineTraceSingleByChannel(outHit, start, end, ECollisionChannel::ECC_Visibility, parameters);
 }
 
 void ATears_RecreationCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
@@ -131,6 +185,8 @@ void ATears_RecreationCharacter::LookUpAtRate(float Rate)
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * TurnRateGamepad * GetWorld()->GetDeltaSeconds());
 }
+
+
 
 void ATears_RecreationCharacter::MoveForward(float Value)
 {
