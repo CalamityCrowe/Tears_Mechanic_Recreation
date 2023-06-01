@@ -30,6 +30,14 @@ public:
 		m_isRewinding = b;
 		m_StartMove = true;
 	}
+	
+	void SetDistanceFromPlayer(float distance) 
+	{
+		m_DistanceFromPlayer = distance; 
+	}
+
+	float GetDistanceFromPlayer() { return m_DistanceFromPlayer; }
+
 	bool GetRewind() { return m_isRewinding; }
 	UFUNCTION(BlueprintPure)
 		int rewindCount() { return m_RewindPositions->Num(); }

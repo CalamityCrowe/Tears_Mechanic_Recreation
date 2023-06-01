@@ -53,7 +53,7 @@ ATears_RecreationCharacter::ATears_RecreationCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	physicsHandler = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandler"));
-	physicsHandler->InterpolationSpeed = 10; 
+	physicsHandler->InterpolationSpeed = 10;
 
 	m_MaxGrabDistance = 1000;
 
@@ -85,6 +85,8 @@ void ATears_RecreationCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAxis("Turn Right / Left Gamepad", this, &ATears_RecreationCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("Look Up / Down Mouse", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("Look Up / Down Gamepad", this, &ATears_RecreationCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAxis("Adjust Object Distance", this, &ATears_RecreationCharacter::MoveGrabbedObject);
 
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &ATears_RecreationCharacter::TouchStarted);
@@ -123,15 +125,15 @@ void ATears_RecreationCharacter::Tick(float deltaTime)
 					if (physicsHandler->GrabbedComponent)
 					{
 
-						physicsHandler->SetTargetLocationAndRotation(GetFollowCamera()->GetComponentLocation() + (GetFollowCamera()->GetForwardVector() * 800), rewindTemp->GetActorRotation());
+						physicsHandler->SetTargetLocationAndRotation(GetFollowCamera()->GetComponentLocation() + (GetFollowCamera()->GetForwardVector() * rewindTemp->GetDistanceFromPlayer()), rewindTemp->GetActorRotation());
 						//rewindTemp->physicsHandler->SetTargetLocationAndRotation(temp_Location, temp_Rotation); 
 						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Grabbed")));
 					}
-					else 
+					else
 					{
 						FVector temp_Location = m_attachHitResult.GetComponent()->GetComponentLocation();
 						FRotator temp_Rotation = m_attachHitResult.GetComponent()->GetComponentRotation();
-						physicsHandler->GrabComponentAtLocationWithRotation(m_attachHitResult.GetComponent(),FName(TEXT("NONE")), temp_Location, temp_Rotation);
+						physicsHandler->GrabComponentAtLocationWithRotation(m_attachHitResult.GetComponent(), FName(TEXT("NONE")), temp_Location, temp_Rotation);
 					}
 				}
 			}
@@ -141,6 +143,12 @@ void ATears_RecreationCharacter::Tick(float deltaTime)
 			}
 
 		}
+		else
+		{
+			if (physicsHandler->GetGrabbedComponent())
+				if (ARewindable* temp_Grabbed = Cast<ARewindable>(physicsHandler->GetGrabbedComponent()->GetOwner()))
+					physicsHandler->SetTargetLocation(GetFollowCamera()->GetComponentLocation() + (GetFollowCamera()->GetForwardVector() * temp_Grabbed->GetDistanceFromPlayer()));
+		}
 	}
 
 }
@@ -148,10 +156,10 @@ void ATears_RecreationCharacter::Tick(float deltaTime)
 void ATears_RecreationCharacter::ReleaseAttached()
 {
 	if (physicsHandler->GrabbedComponent)
-	{	
-		if (ARewindable* tempRewind= Cast<ARewindable>(m_attachHitResult.GetActor())) 
+	{
+		if (ARewindable* tempRewind = Cast<ARewindable>(physicsHandler->GetGrabbedComponent()->GetOwner()))
 		{
-			tempRewind->SetGrabbed(false); 
+			tempRewind->SetGrabbed(false);
 		}
 		physicsHandler->ReleaseComponent();
 	}
@@ -189,6 +197,32 @@ void ATears_RecreationCharacter::ToggleAttachAbility()
 	LerpCamera();
 }
 
+void ATears_RecreationCharacter::MoveGrabbedObject(float rate)
+{
+	if (physicsHandler->GetGrabbedComponent() != nullptr)
+	{
+		if (ARewindable* temp_Grabbed = Cast<ARewindable>(physicsHandler->GetGrabbedComponent()->GetOwner()))
+		{
+			if (temp_Grabbed->isGrabbed())
+			{
+				float temp_Range = temp_Grabbed->GetDistanceFromPlayer() + rate;
+				if (temp_Range > m_MaxGrabDistance)
+				{
+					temp_Range = m_MaxGrabDistance;
+				}
+				if (temp_Range < 100)
+				{
+					temp_Range = 100;
+				}
+
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("%.f"), rate));
+
+				temp_Grabbed->SetDistanceFromPlayer(temp_Range);
+			}
+		}
+	}
+}
+
 
 void ATears_RecreationCharacter::CreateRewindHud()
 {
@@ -216,11 +250,14 @@ void ATears_RecreationCharacter::ActivateAbility()
 	}
 	if (m_validTarget && m_AttachToggle)
 	{
-		ARewindable* temp_Rewind = Cast<ARewindable>(m_attachHitResult.GetActor());
-		if (temp_Rewind->isGrabbed() == false)
+		if (ARewindable* temp_Grabbed = Cast<ARewindable>(m_attachHitResult.GetActor()))
 		{
-			temp_Rewind->SetGrabbed(true);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
+			if (temp_Grabbed->isGrabbed() == false)
+			{
+				temp_Grabbed->SetGrabbed(true);
+				temp_Grabbed->SetDistanceFromPlayer(abs(temp_Grabbed->GetActorLocation().Length() - GetActorLocation().Length()));
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Magenta, FString::Printf(TEXT("I Am Clicked")));
+			}
 		}
 	}
 

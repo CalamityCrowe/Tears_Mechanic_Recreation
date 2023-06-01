@@ -83,8 +83,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ToggleAttachAbility();
 
+	// an event that is called in code but bound in the blueprints
 	UFUNCTION(BlueprintImplementableEvent)
 		void LerpCamera();
+
+	void MoveGrabbedObject(float rate);
 
 
 

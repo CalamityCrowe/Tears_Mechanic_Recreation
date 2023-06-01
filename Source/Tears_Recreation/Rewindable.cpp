@@ -67,6 +67,7 @@ void ARewindable::RewindObject(float lerpIntensity)
 	}
 }
 
+
 void ARewindable::GrabPosition()
 {
 	if (m_isRewinding == false)
