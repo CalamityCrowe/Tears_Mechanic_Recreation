@@ -72,24 +72,20 @@ void ARewindable::GrabPosition()
 {
 	if (m_isRewinding == false)
 	{
-		if(GetActorLocation() != m_LastPosition) // checks if the current position is equal to the last position
+		if (m_RewindPositions->Num() < 30)
 		{
-			if (m_RewindPositions->Num() < 30)
-			{
-				m_RewindPositions->Push(pair<FVector, FRotator>(GetActorLocation(), GetActorRotation()));
-			}
-			else
-			{
-				m_RewindPositions->RemoveAt(0);
-				m_RewindPositions->Push(pair<FVector, FRotator>(GetActorLocation(), GetActorRotation()));
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("AAAAAAAAAA")));
+			m_RewindPositions->Push(pair<FVector, FRotator>(GetActorLocation(), GetActorRotation()));
+		}
+		else
+		{
+			m_RewindPositions->RemoveAt(0);
+			m_RewindPositions->Push(pair<FVector, FRotator>(GetActorLocation(), GetActorRotation()));
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("AAAAAAAAAA")));
 
-			}		
 		}
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("%d"), m_RewindPositions->Num()));
 
 	}
-	m_LastPosition = GetActorLocation(); // grabs the last position
 }
 
 

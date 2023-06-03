@@ -175,7 +175,7 @@ void ATears_RecreationCharacter::ToggleRewindAbility()
 	if (m_RewindToggle)
 	{
 		m_RewindToggle = false;
-		m_RotateGrabbed = false;
+		m_RotateGrabbed = false; 
 		m_validTarget = false;
 
 	}
@@ -188,14 +188,14 @@ void ATears_RecreationCharacter::ToggleRewindAbility()
 
 void ATears_RecreationCharacter::EnableObjectRotation()
 {
-	if (m_AttachToggle)
+	if (m_AttachToggle) 
 	{
-		m_RotateGrabbed = true;
+		m_RotateGrabbed = true; 
 	}
 }
 void ATears_RecreationCharacter::DisableObjectRotation()
 {
-	m_RotateGrabbed = false;
+	m_RotateGrabbed = false; 
 }
 
 void ATears_RecreationCharacter::ToggleAttachAbility()
@@ -291,21 +291,20 @@ bool ATears_RecreationCharacter::LineTraceMethod(FHitResult& outHit)
 
 void ATears_RecreationCharacter::AddControllerYawInput(float Rate)
 {
-	if (Rate != 0 && Controller && Controller->IsLocalPlayerController())
+	if (Rate != 0 && Controller && Controller->IsLocalPlayerController()) 
 	{
 		if (m_RotateGrabbed && m_AttachToggle) // checks if it should rotate the object held and if the ability is active
 		{
 			if (physicsHandler->GetGrabbedComponent() != nullptr)
 			{
 				FRotator actorRotation = physicsHandler->GetGrabbedComponent()->GetOwner()->GetActorRotation();
-				FRotator tempRotation = FRotator(actorRotation.Pitch, actorRotation.Yaw + Rate * 10, actorRotation.Roll);
-				physicsHandler->SetTargetRotation(tempRotation);
+				FRotator tempRotation = FRotator(actorRotation.Pitch, actorRotation.Yaw + Rate, actorRotation.Roll);
 			}
 		}
-		else
+		else 
 		{
 			APlayerController* const PC = CastChecked<APlayerController>(Controller);
-			PC->AddYawInput(Rate);
+			PC->AddYawInput(Rate); 
 		}
 	}
 }
@@ -316,11 +315,10 @@ void ATears_RecreationCharacter::AddControllerPitchInput(float Rate)
 	{
 		if (m_RotateGrabbed && m_AttachToggle) // checks if it should rotate the object held and if the ability is active
 		{
-			if (physicsHandler->GetGrabbedComponent() != nullptr)
+			if (physicsHandler->GetGrabbedComponent() != nullptr) 
 			{
-				FRotator actorRotation = physicsHandler->GetGrabbedComponent()->GetOwner()->GetActorRotation();
-				FRotator tempRotation = FRotator(actorRotation.Pitch + Rate * 10, actorRotation.Yaw, actorRotation.Roll);
-				physicsHandler->SetTargetRotation(tempRotation);
+				FRotator actorRotation = physicsHandler->GetGrabbedComponent()->GetOwner()->GetActorRotation(); 
+				FRotator tempRotation = FRotator(actorRotation.Pitch + Rate, actorRotation.Yaw, actorRotation.Roll); 
 			}
 		}
 		else

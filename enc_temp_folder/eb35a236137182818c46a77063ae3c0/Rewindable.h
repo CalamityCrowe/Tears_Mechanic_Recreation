@@ -74,8 +74,7 @@ public:
 		class UStaticMeshComponent* StaticMesh;
 	pair<FVector, FRotator> nextPosition;
 
-private: 
-	FVector m_LastPosition; 
+
 
 
 };

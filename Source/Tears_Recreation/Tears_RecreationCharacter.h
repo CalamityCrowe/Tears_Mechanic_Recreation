@@ -53,32 +53,28 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+	// handles the inputs for rotating the camera or object held by the player
+	virtual void AddControllerYawInput(float Rate) override;
+	virtual void AddControllerPitchInput(float Rate) override;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
+	UFUNCTION(BlueprintCallable, Category = "Rewind Ability")
+		void ToggleRewindAbility();
 
-	float m_MaxGrabDistance;
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rewind Ability")
-		bool m_RewindToggle;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attach Ability")
-		bool m_AttachToggle;
+	UFUNCTION(BlueprintCallable, Category = "Ultrahand")
+		void EnableObjectRotation();
+	UFUNCTION(BlueprintCallable, Category = "Ultrahand")
+		void DisableObjectRotation();
 
 	UFUNCTION(BlueprintCallable)
-		void CreateRewindHud();
-	UFUNCTION(BlueprintCallable)
-		void DestroyRewindHud();
+		bool LineTraceMethod(FHitResult& outHit);
 
 	void ActivateAbility();
 
-	void ReleaseAttached(); 
+	void ReleaseAttached();
 
 	UFUNCTION(BlueprintCallable)
 		void ToggleAttachAbility();
@@ -88,17 +84,29 @@ public:
 		void LerpCamera();
 
 	void MoveGrabbedObject(float rate);
+public:
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rewind Ability")
+		bool m_RewindToggle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ultrahand")
+		bool m_AttachToggle;
 
 
 
 
-	UFUNCTION(BlueprintCallable)
-		void ToggleRewindAbility();
 
-	UFUNCTION(BlueprintCallable)
-		bool LineTraceMethod(FHitResult& outHit);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ultrahand")
+		bool m_RotateGrabbed;
 
-	bool m_validTarget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability Stats")
+		bool m_validTarget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability Stats")
+		float m_MaxGrabDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Physics Component")
 		class UPhysicsHandleComponent* physicsHandler;
